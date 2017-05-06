@@ -25,16 +25,15 @@ module.exports = {
 ```
 Program -> Node | ε
 Stat -> Frag Stat | ε
-Frag -> Node | Text | Expr
+Frag -> Node | Expr | text
 
 Node -> OpenTag NodeTail
 OpenTag -> '/[\w\-\d]+/' {Attr}
 NodeTail -> '>' Stat '/\<[\w\d]+\>/' | '/>'
 
-Text -> text 
-
 Attr -> '/[\w\-\d]/+' Value
 Value -> '=' Literal | '=' Expr
 Literal -> '/"[\s\S]+"/'
-Expr -> '/\{[\s\S]+\}/'
+Expr -> ExprFrag Expr | ε
+ExprFrag -> text | Node
 ```

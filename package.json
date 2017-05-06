@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/zxc0328/simple-JSX-transplier#readme",
   "devDependencies": {
-    "webpack": "^2.5.0"
+    "webpack": "^2.5.0",
+    "webpack-dev-server": "^2.4.5"
   }
 }
