@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Simple JSX transpiler Play Ground</title>
+</head>
+<body>
+	<textarea id="source" cols="50" rows="20"></textarea>
+	<textarea id="result" cols="50" rows="20"></textarea>
+	<button id="btn">Magic!</button>
+	<script src="/dist/simple-jsx-transpiler.js"></script>
+	<script>
+		var Transpiler = sjt.default;
+		var source = document.querySelector("#source")
+		var result = document.querySelector("#result")
+		var btn = document.querySelector("#btn")
+		btn.addEventListener("click", function(){
+			var code = source.value
+			result.value = Transpiler.transpile(code).body
+		})
+	</script>
+</body>
+</html>
