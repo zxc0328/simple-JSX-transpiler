@@ -1,0 +1,22 @@
+{
+  "name": "simple-jsx-transpiler",
+  "version": "0.1.0",
+  "description": "Simple transplier that transpile JSX to React-compatible render function.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zxc0328/simple-JSX-transplier.git"
+  },
+  "author": "zindex",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zxc0328/simple-JSX-transplier/issues"
+  },
+  "homepage": "https://github.com/zxc0328/simple-JSX-transplier#readme",
+  "devDependencies": {
+    "webpack": "^2.5.0"
+  }
+}
