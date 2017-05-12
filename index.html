@@ -10,13 +10,23 @@
 	</style>
 </head>
 <body>
-	<textarea id="source" cols="50" rows="20"></textarea>
+	<textarea id="source" cols="50" rows="20">
+	</textarea>
 	<textarea id="result" cols="50" rows="20"></textarea>
 	<button id="btn">Magic!</button>
 	<script src="/simple-JSX-transpiler/dist/simple-jsx-transpiler.js"></script>
 	<script>
 		var Transpiler = sjt.default;
 		var source = document.querySelector("#source")
+		source.value = `
+		  <div>
+        <h3>TODO</h3>
+        <TodoList items={this.state.items} />
+        <form onSubmit={this.handleSubmit}>
+          <input onChange={this.handleChange} value={this.state.text} />
+          <button>{'Add #' + (this.state.items.length + 1)}</button>
+        </form>
+      </div>`
 		var result = document.querySelector("#result")
 		var btn = document.querySelector("#btn")
 		btn.addEventListener("click", function(){

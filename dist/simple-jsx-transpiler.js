@@ -753,14 +753,13 @@ var transpiler = {}
 
 transpiler.transpile = function (code) {
 	var astRoot = (new __WEBPACK_IMPORTED_MODULE_0__parser__["a" /* default */](code)).parse()
-	console.log(astRoot)
 	var code = new __WEBPACK_IMPORTED_MODULE_2__codegen__["a" /* default */](astRoot)
 	/**
 	 * dev code
 	 */
-	console.log(astRoot)
-	var textarea = document.querySelector("#codegen")
-	textarea.value = code.body
+	// console.log(astRoot)
+	// var textarea = document.querySelector("#codegen")
+	// textarea.value = code.body
 	return code
 }
 
