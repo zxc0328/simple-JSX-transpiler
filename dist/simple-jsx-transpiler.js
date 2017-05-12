@@ -285,6 +285,11 @@ pp.captureByRegx = function (regx, type) {
   }
 }
 
+pp.restoreContext = function (type) {
+  this.setContext(type)
+}
+
+
 pp.test = function () {
   while(!this.eof) {
     console.log(this.nextToken())
@@ -308,8 +313,8 @@ function isUndefined (value) {
 "use strict";
 /* harmony default export */ __webpack_exports__["a"] = ({
   TK_TEXT: 1, // 文本节点
-  TK_RCB: 2, // {
-  TK_END_IF: 3, // {/if}
+  TK_LCB: 2, // {
+  TK_RCB: 3, // }
   TK_GT: 4, // >
   TK_SLASH_GT: 5, // />
   TK_TAG_NAME: 6, // <div|<span|<img|...
@@ -317,10 +322,8 @@ function isUndefined (value) {
   TK_ATTR_EQUAL: 8, // =
   TK_ATTR_STRING: 9, // "string"
   TK_CLOSE_TAG: 10, // </div>|</span>|</a>|...
-  TK_LCB: 11, // }
   TK_EOF: 100 // end of file
 });
-
 
 /***/ }),
 /* 2 */
@@ -331,156 +334,159 @@ function isUndefined (value) {
 
 var codeGenMethods = {}
 
-function CodeGen (astRoot) {
-  this.nodeIndex = 1
-  this.lines = []
-  this.walkRoot(astRoot)
-  this.body = this.lines.join('\n');
+function CodeGen(astRoot) {
+    this.nodeIndex = 1
+    this.lines = []
+    this.walkRoot(astRoot)
+    this.body = this.lines.join('\n');
 }
 
 var pp = CodeGen.prototype
 
-pp.walkRoot = function (astRoot) {
-  this.walk(astRoot, '  ', '0', true)
+pp.walkRoot = function(astRoot) {
+    this.walk(astRoot, '  ', '0', true)
 }
 
-pp.walk = function (node, indent, parentIndex, initFlag) {
-  if (typeof node === 'string') {
-    this.lines.push(",")
-    return this.genString(node, indent, parentIndex)
-  } else if(node.type === "Node") {
-    return this.genNode(node, indent, parentIndex, initFlag)
-  } else {
-    return this['gen' + node.type](node, indent, parentIndex)
-  }
+pp.walk = function(node, indent, parentIndex, initFlag) {
+    if (typeof node === 'string') {
+        return node
+    } else if (node.type === "Node") {
+        return this.genNode(node, indent, parentIndex, initFlag)
+    } else {
+        return this['gen' + node.type](node, indent, parentIndex)
+    }
 }
 
-pp.walkExpr = function (node) {
-  if (typeof node === 'string') {
-    return node
-  } else {
-    return this.genNodeOneLiner(node, " ", 0)
-  }
+pp.walkExpr = function(node) {
+    if (typeof node === 'string') {
+        return node
+    } else {
+        return this.genNodeOneLiner(node, " ", 0)
+    }
 }
 
-pp.genStat = function (node, indent, parentIndex) {
-  var self = this
-  __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(node.members, function (item) {
-    self.walk(item, indent, parentIndex)
-  })
+pp.genStat = function(node, indent, parentIndex) {
+    var self = this
+    __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(node.members, function(item) {
+        self.walk(item, indent, parentIndex)
+    })
 }
 
 pp.genNode = function(node, indent, parentIndex, initFlag) {
-  if (initFlag) {
-    this.genNodeInit(node, indent, parentIndex)
-  }else {
-    return this.genNodeOneLiner(node, indent, parentIndex)
-  }
-}
-
-pp.genNodeInit = function (node, indent, parentIndex) {
-  var currentIndex = this.nodeIndex++
-  var tagName = node.name
-  if (!/^[A-Z]/.test(node.name)){
-    tagName = "\"" + node.name + "\""
-  }
-  this.lines.push("React.createElement(")
-  this.lines.push(inc(indent) + tagName + ",")
-  this.lines.push(inc(indent) + this.getAttrs(node))
-  if (node.body.members) {
-    var self = this
-    __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(node.body.members, function (item) {
-      self.append(",")
-      self.lines.push(inc(indent) + self.walk(item, indent, parentIndex))
-    })
-  }
-  this.lines.push(indent + ")")
-}
-
-pp.genNodeOneLiner = function (node, indent, parentIndex) {
-  var str = "";
-  var currentIndex = this.nodeIndex++
-  var tagName = node.name
-  if (!/^[A-Z]/.test(node.name)){
-    tagName = "\"" + node.name + "\""
-  }
-  var pre = "React.createElement(" + tagName + ",";
-  str += pre
-  str += this.getAttrs(node)
-  if (node.body) {
-    var body = this.walk(node.body, inc(indent), currentIndex, false)
-    if (body) {
-      str += body
-    }
-  }
-  str += ")"
-  return str  
-}
-
-pp.genString = function (node, indent, parentIndex) {
-  var line = node
-  this.lines.push(line)
-}
-
-pp.append = function (str) {
-  this.lines[this.lines.length - 1] = this.lines[this.lines.length - 1] + str 
-}
-
-pp.getExpr = function (expr, indent, parentIndex) {
- var self = this
- var str = ""
- __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(expr.members, function (item) {
-    str = str + self.walkExpr(item)
-  })
- return str
-}
-
-pp.getValue = function (value) {
-  if (typeof value === "string") {
-    return "\"" + value + "\""
-  }else {
-    return this.getExpr(value)
-  }
-}
-
-pp.getAttrs = function (node, indent) {
-  var str = '{'
-  var attrs = node.attributes
-  var i = 0;
-  for (var key in attrs) {
-    var attrStr = this.getValue(attrs[key])
-    if (/\-/.test(key)){
-      key = "\"" + key + "\""
-    }
-    if (i++ != 0) {
-      str += (', ' + key + ': ' + attrStr)
+    if (initFlag) {
+        this.genNodeInit(node, indent, parentIndex)
     } else {
-      str += (key + ': ' + attrStr)
+        return this.genNodeOneLiner(node, indent, parentIndex)
     }
-  }
-  str += '}'
-
-  if (i === 0) {
-    return "null"
-  }else {
-    return str;
-  }
 }
 
-function inc (indent) {
-  return indent + '  '
+pp.genNodeInit = function(node, indent, parentIndex) {
+    var currentIndex = this.nodeIndex++
+        var tagName = node.name
+    if (!/^[A-Z]/.test(node.name)) {
+        tagName = "\"" + node.name + "\""
+    }
+    this.lines.push("React.createElement(")
+    this.lines.push(inc(indent) + tagName + ",")
+    this.lines.push(inc(indent) + this.getAttrs(node))
+    if (node.body.members) {
+        var self = this
+        __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(node.body.members, function(item) {
+            self.append(",")
+            self.lines.push(inc(indent) + self.walk(item, indent, parentIndex))
+        })
+    }
+    this.lines.push(indent + ")")
+}
+
+pp.genNodeOneLiner = function(node, indent, parentIndex) {
+    var str = "";
+    var currentIndex = this.nodeIndex++
+        var tagName = node.name
+    if (!/^[A-Z]/.test(node.name)) {
+        tagName = "\"" + node.name + "\""
+    }
+    var pre = "React.createElement(" + tagName + ",";
+    str += pre
+    str += this.getAttrs(node)
+    if (node.body) {
+        var self = this
+        __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(node.body.members, function(item) {
+            var body = self.walk(item, inc(indent), currentIndex, false)
+            if (body) {
+                str += "," + body
+            }
+        })
+    }
+    str += ")"
+    return str
+}
+
+pp.genString = function(node, indent, parentIndex) {
+    var line = node
+    this.lines.push(line)
+}
+
+pp.append = function(str) {
+    this.lines[this.lines.length - 1] = this.lines[this.lines.length - 1] + str
+}
+
+pp.genExpr = function(expr, indent, parentIndex) {
+    var self = this
+    var str = ""
+    __WEBPACK_IMPORTED_MODULE_0__util__["a" /* default */].each(expr.members, function(item) {
+        str = str + self.walkExpr(item)
+    })
+    return str
+}
+
+pp.getValue = function(value) {
+    if (typeof value === "string") {
+        return "\"" + value + "\""
+    } else {
+        return this.genExpr(value)
+    }
+}
+
+pp.getAttrs = function(node, indent) {
+    var str = '{'
+    var attrs = node.attributes
+    var i = 0;
+    for (var key in attrs) {
+        var attrStr = this.getValue(attrs[key])
+        if (/\-/.test(key)) {
+            key = "\"" + key + "\""
+        }
+        if (i++ != 0) {
+            str += (', ' + key + ': ' + attrStr)
+        } else {
+            str += (key + ': ' + attrStr)
+        }
+    }
+    str += '}'
+
+    if (i === 0) {
+        return "null"
+    } else {
+        return str;
+    }
+}
+
+function inc(indent) {
+    return indent + '  '
 }
 
 var keyIndex = 0
 
-function getKey () {
-  return 'key' + keyIndex++
+function getKey() {
+    return 'key' + keyIndex++
 }
 
 
 
 
 /* harmony default export */ __webpack_exports__["a"] = (CodeGen);
+
 
 /***/ }),
 /* 3 */
@@ -494,13 +500,14 @@ function getKey () {
 
 var typesName = {}
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TEXT] = "text node"
+typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB] = "left curly brace"
+typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_RCB] = "right curly brace"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_GT] = ">"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_SLASH_GT] = "/>"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TAG_NAME] = "open tag name"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_ATTR_NAME] = "attribute name"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_ATTR_EQUAL] = "="
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_ATTR_STRING] = "attribute string"
-typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_EXPR] = "javascript expression"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_CLOSE_TAG] = "close tag"
 typesName[__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_EOF] = "EOF"
 
@@ -538,7 +545,7 @@ pp.parseStat = function () {
   if (
     this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TAG_NAME) ||
     this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TEXT) ||
-    this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_EXPR)
+    this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB)
   ) {
     pushMembers(stat.members, [this.parseFrag()])
     pushMembers(stat.members, this.parseStat().members)
@@ -571,7 +578,10 @@ function isString (str) {
 
 pp.parseFrag = function () {
   if (this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TAG_NAME)) return this.parseNode()
-  else if (this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB)) return this.parseExpr()
+  else if (this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB)) {
+    this.eat(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB)
+    return this.parseExpr()
+  }
   else if (this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TEXT)) {
     var token = this.eat(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TEXT)
     return token.label
@@ -681,7 +691,9 @@ pp.parseValue = function () {
     this.eat(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_ATTR_EQUAL)
     if (this.is(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB)){
       this.eat(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_LCB)
-      return this.parseExpr()
+      var expr = this.parseExpr()
+      this.tokens.restoreContext(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_TAG_NAME)
+      return expr
     }else {
       var token = this.eat(__WEBPACK_IMPORTED_MODULE_1__tokentypes__["a" /* default */].TK_ATTR_STRING)
       return token.label
@@ -741,8 +753,15 @@ var transpiler = {}
 
 transpiler.transpile = function (code) {
 	var astRoot = (new __WEBPACK_IMPORTED_MODULE_0__parser__["a" /* default */](code)).parse()
+	console.log(astRoot)
 	var code = new __WEBPACK_IMPORTED_MODULE_2__codegen__["a" /* default */](astRoot)
-	return code 
+	/**
+	 * dev code
+	 */
+	console.log(astRoot)
+	var textarea = document.querySelector("#codegen")
+	textarea.value = code.body
+	return code
 }
 
 
