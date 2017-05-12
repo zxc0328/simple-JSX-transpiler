@@ -1,5 +1,5 @@
 # Simple JSX transpiler
-Simple transpiler that transplie JSX to React-compatible render function.
+Simple transpiler that transplie JSX to React-compatible render function. Forked from [livoras/virtual-template](https://github.com/livoras/virtual-template)
 
 **[Playground](https://zxc0328.github.io/simple-JSX-transpiler/)**
 
